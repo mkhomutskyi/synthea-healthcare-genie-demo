@@ -2,7 +2,23 @@
 
 Ask Genie in Chat mode: **Show simulated claim cost and payer coverage by payer category for 2025.**
 
-This is the independently computed reference result for the pinned synthetic sample. It is an aggregate example, not a screenshot or a real-world spending estimate.
+## Genie Chat
+
+![Genie Chat answer and five-row table of simulated claim cost and payer coverage by payer category for 2025.](assets/genie-chat-answer.png)
+
+*Genie returns five payer categories for simulated 2025. Open the image to enlarge it.*
+
+## Generated SQL
+
+Select **Show code** for the same answer.
+
+![Generated SQL for the 2025 payer-category question, using MEASURE, a year filter, and GROUP BY ALL, followed by the five-row result table.](assets/genie-generated-sql.png)
+
+*Generated SQL for the same answer. Catalog and schema names are replaced with placeholders.*
+
+## Reference result
+
+The table below is the independently computed reference for the pinned synthetic sample. The claim cost and payer coverage columns match all five rows in the screenshots. It also includes cost not covered by payer and coverage rate. Results describe this small synthetic sample only.
 
 | Payer category | Claim cost | Payer coverage | Cost not covered by payer | Coverage rate |
 |---|---:|---:|---:|---:|
