@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this demo, please cite it and the Synthea paper listed under references."
+title: "Synthea Healthcare Operations Genie Agent demo"
+type: software
+version: 0.1.0
+license: Apache-2.0
+authors:
+  - family-names: Khomutskyi
+    given-names: Maks
+keywords:
+  - synthetic data
+  - healthcare operations
+  - Genie
+  - metric views
+  - reproducibility
+references:
+  - type: article
+    title: "Synthea: An approach, method, and software mechanism for generating synthetic patients and the synthetic electronic health care record"
+    authors:
+      - family-names: Walonoski
+        given-names: Jason
+      - family-names: Kramer
+        given-names: Mark
+      - family-names: Nichols
+        given-names: Joseph
+      - family-names: Quina
+        given-names: Andre
+      - family-names: Moesel
+        given-names: Chris
+      - family-names: Hall
+        given-names: Dylan
+      - family-names: Duffett
+        given-names: Carlton
+      - family-names: Dube
+        given-names: Kudakwashe
+      - family-names: Gallagher
+        given-names: Thomas
+      - family-names: McLachlan
+        given-names: Scott
+    journal: "Journal of the American Medical Informatics Association"
+    volume: 25
+    issue: 3
+    start: 230
+    end: 238
+    year: 2018
+    doi: 10.1093/jamia/ocx079

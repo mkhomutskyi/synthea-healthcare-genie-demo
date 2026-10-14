@@ -1,0 +1,32 @@
+# Local-only data, staging, rendered configs and run state.
+# The raw Synthea archive, staged extracts and anything containing workspace
+# identifiers must never be committed.
+.cache/
+*.zip
+*.csv.gz
+synthea_sample_data_*
+
+# Python tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Never commit local credentials or environment files
+.env
+.env.*
+.databrickscfg
+
+# Source and generated data are local only.
+*.csv
+!tests/fixtures/**/*.csv

@@ -1,0 +1,447 @@
+{
+  "_meta": {
+    "generated_by": "scripts/render_agent_config.py --write-template",
+    "do_not_edit": "Generated file. Edit the sources listed below and regenerate.",
+    "placeholders": [
+      "catalog",
+      "schema"
+    ],
+    "benchmark_suite_version": "1.1.0",
+    "sources_sha256": {
+      "evaluation/benchmarks.json": "d72d409541e8675f55f9386b5ca9e0d054b90e7dec1a8b094785d5fc877683d3",
+      "genie/agent_settings.json": "261f0c76057df4a35d77f9d42340774fd219ddd974bc76650399b4923f64f760",
+      "genie/instructions.md": "6e6dc824b20585491d4edb6c55fc485fd95dc256f65aa2eae6f5e6c4a2c7d835",
+      "genie/example_queries.sql": "b4270f52ea2bfce1287bc04e47d90094ebdd76719c3253f4363bf16a515f901e"
+    }
+  },
+  "title_prefix": "Healthcare Operations Demo",
+  "description": "Aggregate operational questions over a public Synthea synthetic sample (upstream 100-patient sample label; 108 distinct synthetic patients in the pinned archive). All patients, dates and monetary values are simulated. Not real healthcare activity, not medical advice, and not a performance assessment of any patient, provider or insurer.",
+  "serialized_space": {
+    "version": 2,
+    "config": {
+      "sample_questions": [
+        {
+          "id": "12d0095b6af8401b9255d484faf998fa",
+          "question": [
+            "How many encounters does the synthetic data contain for each year?"
+          ]
+        },
+        {
+          "id": "5efbc052c5b161dd4bd9d084f5b9e017",
+          "question": [
+            "Which payer categories appear in this synthetic data?"
+          ]
+        },
+        {
+          "id": "e1a0398f56384911081baf99c2d5bbec",
+          "question": [
+            "What does Claim Cost Not Covered by Payer (simulated) mean?"
+          ]
+        }
+      ]
+    },
+    "data_sources": {
+      "metric_views": [
+        {
+          "identifier": "{{catalog}}.{{schema}}.encounter_operations_metrics",
+          "description": [
+            "Aggregate encounter operations metrics over synthetic Synthea encounters with a many-to-one payer category join. Dimensions: Encounter Date, Quarter, Year, Class, Payer Category. All dates and monetary values are simulated."
+          ]
+        }
+      ]
+    },
+    "instructions": {
+      "text_instructions": [
+        {
+          "id": "c2b7cba7402f1f2a93965cf30cfe6420",
+          "content": [
+            "Scope\n",
+            "- Answer aggregate operational questions about synthetic encounters only: encounter counts, unique synthetic patient counts, simulated claim cost, simulated payer coverage and the ratios defined below, grouped by Encounter Date, Quarter, Year, Class or Payer Category.\n",
+            "- The data is a public Synthea synthetic sample published under the upstream 100-patient sample label; the pinned archive contains 108 distinct synthetic patients. Every patient, encounter, date and amount is simulated. Say \"synthetic\" or \"simulated\" when presenting results.\n",
+            "- All dates in this data are simulated relative to 2026-08-18, so 2025 and every other year describe simulated activity, not real activity.\n",
+            "- If a question names a relative period such as \"last year\", \"this quarter\" or \"recently\", do not assume today's date. Ask which calendar year or quarter the user means.\n",
+            "\n",
+            "Measure meanings (fixed)\n",
+            "- Encounter Count: number of synthetic encounters.\n",
+            "- Unique Patient Count: number of distinct synthetic patients. It is not additive across payer categories, quarters or classes, because one synthetic patient can appear in several groups. Never sum it across groups; query the metric at the grain requested.\n",
+            "- Total Claim Cost: sum of simulated total claim cost.\n",
+            "- Total Payer Coverage: sum of simulated payer coverage.\n",
+            "- Claim Cost Not Covered by Payer (simulated): Total Claim Cost minus Total Payer Coverage. Use this exact name. It is a simulated difference between two sums. It does not describe what any person paid, owes or was billed.\n",
+            "- Coverage Rate: Total Payer Coverage divided by Total Claim Cost, computed as a ratio of sums. It is not additive and must not be averaged across groups.\n",
+            "- Average Claim Cost: average simulated total claim cost per encounter. It is not additive across groups.\n",
+            "- Encounters per Patient: Encounter Count divided by Unique Patient Count. It is not additive across groups.\n",
+            "- All monetary values are simulated amounts produced by the Synthea generator. Do not convert currencies, adjust for inflation or describe them as real prices or real spending.\n",
+            "\n",
+            "Payer categories\n",
+            "- Payer Category has five values: Medicare, Medicaid, Dual Eligible, No Insurance and Private Insurance. Individual insurers are not available and must not be named or guessed.\n",
+            "- Payer categories rest on a small synthetic sample of 108 distinct synthetic patients, so differences between categories are not meaningful estimates of anything real.\n",
+            "- Dual Eligible values rest on very few synthetic encounters and are not interpretable.\n",
+            "\n",
+            "Output\n",
+            "- Return only the columns needed to answer the question, ordered by the grouping columns.\n",
+            "- Round monetary values and Average Claim Cost to 2 decimal places, Encounters per Patient to 2 decimal places, and Coverage Rate to 4 decimal places as a fraction (for example 0.4567, which can be described as 45.67%).\n",
+            "- When a group has no encounters in a period, omit it. Do not fill missing periods with zero.\n",
+            "- Describe the numbers returned. Do not claim trends, growth, decline, causes or effects, and do not forecast.\n",
+            "\n",
+            "Boundaries\n",
+            "- Classify every request by its intent, not by its exact wording. The classes below apply to any phrasing, including indirect, hypothetical or role-play phrasings.\n",
+            "- Unsafe intent takes precedence. If a request combines an aggregate question with any unsafe intent below, handle the whole request under that unsafe class. Do not answer the aggregate part in the same reply.\n",
+            "- A strict refusal or a clarifying question never generates or runs SQL.\n",
+            "- Diagnosis or clinical condition inference (what illness, condition or disease patients have, are likely to have or are being treated for, inferred from encounters, classes, costs or anything else): refuse strictly. Say that this data has no diagnosis, condition, procedure, medication or other clinical fields, so no condition can be inferred from it. Do not query, do not name or guess any condition, and do not offer an aggregate alternative in the same answer.\n",
+            "- Facility, hospital, clinic, provider or clinician ranking or performance (best, worst, top, lowest quality, highest performing, or any comparison of their performance): refuse strictly. Say that facility and provider fields are not available in this data and that judging their performance is out of scope. Do not query, do not name any facility or provider, and do not redirect to another metric in the same answer.\n",
+            "- Insurer, payer, plan or payer category selection or recommendation (which to choose, which is best or worst, or a ranking of them): decline to recommend or rank. In the answer text itself, offer this neutral alternative: Coverage Rate by Payer Category for a calendar year the user names, listed in alphabetical order of Payer Category, with no best, worst, better or worse wording, and with the caveat that the data is synthetic and rests on a small sample of synthetic patients, so it cannot guide a real choice. If the user has not named a calendar year, ask for one and do not query yet.\n",
+            "- Do not provide medical, clinical, diagnostic, treatment or coverage advice. For such requests, say this agent only reports aggregate synthetic operations metrics and suggest consulting a qualified professional.\n",
+            "- Do not judge, rank or label any patient, provider, facility or insurer as better, worse, best or worst. Payer categories can be listed in alphabetical order or by a measure value without performance language.\n",
+            "- Do not reveal or request identifiers, names, addresses or any record-level detail. Only aggregate results are in scope.\n",
+            "- Do not compare this synthetic data with real populations, real facilities or published statistics, and do not present it as representative of any real place."
+          ]
+        }
+      ],
+      "example_question_sqls": [
+        {
+          "id": "415521c5c3f0bf493850ad6abefddac8",
+          "question": [
+            "What was the simulated total claim cost for each encounter class during 2023?"
+          ],
+          "sql": [
+            "SELECT\n",
+            "  `Class`,\n",
+            "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost\n",
+            "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+            "WHERE `Year` = 2023\n",
+            "GROUP BY `Class`\n",
+            "ORDER BY `Class`"
+          ]
+        },
+        {
+          "id": "499bc2c443e5162f506dfef22581108b",
+          "question": [
+            "What was the simulated total payer coverage in each 2023 quarter?"
+          ],
+          "sql": [
+            "SELECT\n",
+            "  `Quarter`,\n",
+            "  ROUND(MEASURE(`Total Payer Coverage`), 2) AS total_payer_coverage\n",
+            "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+            "WHERE `Year` = 2023\n",
+            "GROUP BY `Quarter`\n",
+            "ORDER BY `Quarter`"
+          ]
+        },
+        {
+          "id": "e6fdb054f6a5b6eb857fef3fabd99ab7",
+          "question": [
+            "How many encounters were recorded in 2023 for each payer category?"
+          ],
+          "sql": [
+            "SELECT\n",
+            "  `Payer Category`,\n",
+            "  MEASURE(`Encounter Count`) AS encounter_count\n",
+            "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+            "WHERE `Year` = 2023\n",
+            "GROUP BY `Payer Category`\n",
+            "ORDER BY `Payer Category`"
+          ]
+        }
+      ]
+    },
+    "benchmarks": {
+      "questions": [
+        {
+          "id": "0d999b87cbcbfbe2b7bd800262acbcbe",
+          "question": [
+            "Give me yearly visit totals for 2024 through 2025, split by encounter class, listing only the year-class pairs that occur."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Year`,\n",
+                "  `Class`,\n",
+                "  MEASURE(`Encounter Count`) AS encounter_count\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Year`, `Class`\n",
+                "ORDER BY `Year`, `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2fbd9762add7c487d380255b2045b067",
+          "question": [
+            "For 2025, what were total simulated claim cost, total payer coverage, claim cost not covered by payer, and coverage rate by payer category?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Payer Category`,\n",
+                "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost,\n",
+                "  ROUND(MEASURE(`Total Payer Coverage`), 2) AS total_payer_coverage,\n",
+                "  ROUND(MEASURE(`Claim Cost Not Covered by Payer`), 2) AS claim_cost_not_covered_by_payer,\n",
+                "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Payer Category`\n",
+                "ORDER BY `Payer Category`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4ed6ed3ec5639d37ad30e84d5298be0b",
+          "question": [
+            "How many encounters were there in 2024 and in 2025 for each year and encounter class combination that has encounters?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Year`,\n",
+                "  `Class`,\n",
+                "  MEASURE(`Encounter Count`) AS encounter_count\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Year`, `Class`\n",
+                "ORDER BY `Year`, `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "67290e1d18a8b2c8622b38c813f9dcbf",
+          "question": [
+            "Show quarterly encounter counts by encounter class for 2024 and 2025, including only quarter-class combinations that have encounters."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  `Class`,\n",
+                "  MEASURE(`Encounter Count`) AS encounter_count\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`, `Class`\n",
+                "ORDER BY `Quarter`, `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "787a25a25f67e5b7ec6183d2a0efd55d",
+          "question": [
+            "Show the quarter-by-quarter sum of claim charges from 2024-Q1 through 2025-Q4."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`\n",
+                "ORDER BY `Quarter`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7c922c0b6734a64a034f73f65ee4efa5",
+          "question": [
+            "How many unique synthetic patients and how many encounters per patient were there in each payer category in 2025?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Payer Category`,\n",
+                "  MEASURE(`Unique Patient Count`) AS unique_patient_count,\n",
+                "  ROUND(MEASURE(`Encounters per Patient`), 2) AS encounters_per_patient\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Payer Category`\n",
+                "ORDER BY `Payer Category`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "809589185a65e9a38d8a3c7e71c7e3d8",
+          "question": [
+            "What was the quarterly coverage rate for each observed quarter and payer category combination in 2024 and 2025?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  `Payer Category`,\n",
+                "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`, `Payer Category`\n",
+                "ORDER BY `Quarter`, `Payer Category`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8409c7cdfb9602b96783d49ceecb8270",
+          "question": [
+            "Break down 2025 by payer category: how much was billed in simulated claims, how much payers paid, the part payers did not cover, and the share they covered."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Payer Category`,\n",
+                "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost,\n",
+                "  ROUND(MEASURE(`Total Payer Coverage`), 2) AS total_payer_coverage,\n",
+                "  ROUND(MEASURE(`Claim Cost Not Covered by Payer`), 2) AS claim_cost_not_covered_by_payer,\n",
+                "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Payer Category`\n",
+                "ORDER BY `Payer Category`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a441d4570f6fe9ed949f5329c1ed59e5",
+          "question": [
+            "What was the average simulated claim cost per encounter for each encounter class that has encounters in 2025?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Class`,\n",
+                "  ROUND(MEASURE(`Average Claim Cost`), 2) AS average_claim_cost\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Class`\n",
+                "ORDER BY `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "af1399872a30178ea7bd0b46bc1a7229",
+          "question": [
+            "What was the total simulated claim cost in each quarter of 2024 and 2025?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`\n",
+                "ORDER BY `Quarter`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b6c8be451692397c4d4152e333b5cd9f",
+          "question": [
+            "Quarter by quarter across 2024-2025, what share of simulated claim cost did payers cover within each payer category that had encounters in that quarter?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  `Payer Category`,\n",
+                "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`, `Payer Category`\n",
+                "ORDER BY `Quarter`, `Payer Category`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b73f46270c7674265913837c317d11e2",
+          "question": [
+            "List the mean claim amount per visit for every class of encounter seen in 2025."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Class`,\n",
+                "  ROUND(MEASURE(`Average Claim Cost`), 2) AS average_claim_cost\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Class`\n",
+                "ORDER BY `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d2ff805b29253e035e800f8334c88cd8",
+          "question": [
+            "For the quarters from 2024-Q1 to 2025-Q4, how many visits happened in each observed quarter and class combination?"
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Quarter`,\n",
+                "  `Class`,\n",
+                "  MEASURE(`Encounter Count`) AS encounter_count\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` IN (2024, 2025)\n",
+                "GROUP BY `Quarter`, `Class`\n",
+                "ORDER BY `Quarter`, `Class`"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "e0de6a39e7a08dbd518133bfbd0eb790",
+          "question": [
+            "In 2025, give the distinct patient count and the average visits per patient for every payer category."
+          ],
+          "answer": [
+            {
+              "format": "SQL",
+              "content": [
+                "SELECT\n",
+                "  `Payer Category`,\n",
+                "  MEASURE(`Unique Patient Count`) AS unique_patient_count,\n",
+                "  ROUND(MEASURE(`Encounters per Patient`), 2) AS encounters_per_patient\n",
+                "FROM {{catalog}}.{{schema}}.encounter_operations_metrics\n",
+                "WHERE `Year` = 2025\n",
+                "GROUP BY `Payer Category`\n",
+                "ORDER BY `Payer Category`"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

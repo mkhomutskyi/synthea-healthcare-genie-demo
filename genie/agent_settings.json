@@ -1,0 +1,19 @@
+{
+  "title_prefix": "Healthcare Operations Demo",
+  "description": "Aggregate operational questions over a public Synthea synthetic sample (upstream 100-patient sample label; 108 distinct synthetic patients in the pinned archive). All patients, dates and monetary values are simulated. Not real healthcare activity, not medical advice, and not a performance assessment of any patient, provider or insurer.",
+  "metric_view_description": "Aggregate encounter operations metrics over synthetic Synthea encounters with a many-to-one payer category join. Dimensions: Encounter Date, Quarter, Year, Class, Payer Category. All dates and monetary values are simulated.",
+  "sample_questions": [
+    {
+      "key": "landing-encounters-by-year",
+      "question": "How many encounters does the synthetic data contain for each year?"
+    },
+    {
+      "key": "landing-payer-categories",
+      "question": "Which payer categories appear in this synthetic data?"
+    },
+    {
+      "key": "landing-not-covered-meaning",
+      "question": "What does Claim Cost Not Covered by Payer (simulated) mean?"
+    }
+  ]
+}

@@ -1,0 +1,406 @@
+{
+  "suite": "synthea-healthcare-ops-chat-benchmarks",
+  "suite_version": "1.1.0",
+  "frozen": true,
+  "frozen_on": "2026-10-13",
+  "mode": "Chat",
+  "notes": "Canonical source for the Agent benchmark section and sql/40_canonical_answers.sql. Do not edit frozen questions or SQL; publish changes as a new suite_version. Every question maps to exactly one intent and one canonical SQL answer. Each intent's canonical_sql must equal the SQL generated from its structured semantics, and the semantics must equal the independent offline reference spec. Years 2024-2025 are reserved for benchmarks; examples use 2023 only.",
+  "version_history": [
+    {
+      "suite_version": "1.0.0",
+      "frozen_on": "2026-10-13",
+      "published": false,
+      "summary": "Fixed aggregate questions, observed-group semantics, and checked SQL answers for the synthetic-data demo."
+    },
+    {
+      "suite_version": "1.1.0",
+      "frozen_on": "2026-10-13",
+      "published": false,
+      "summary": "Fixed aggregate questions, observed-group semantics, and checked SQL answers for the synthetic-data demo."
+    }
+  ],
+  "metric_view_placeholder": "{{catalog}}.{{schema}}.encounter_operations_metrics",
+  "benchmark_years": [
+    2024,
+    2025
+  ],
+  "example_years": [
+    2023
+  ],
+  "held_out_shapes": [
+    {
+      "id": "per_patient_measures",
+      "description": "Unique Patient Count and Encounters per Patient",
+      "measures": [
+        "Unique Patient Count",
+        "Encounters per Patient"
+      ]
+    },
+    {
+      "id": "quarter_by_payer_category",
+      "description": "Quarter grain combined with Payer Category",
+      "dimensions_together": [
+        "Quarter",
+        "Payer Category"
+      ]
+    },
+    {
+      "id": "coverage_rate",
+      "description": "Coverage Rate ratio of sums",
+      "measures": [
+        "Coverage Rate"
+      ]
+    },
+    {
+      "id": "average_claim_cost",
+      "description": "Average Claim Cost per encounter",
+      "measures": [
+        "Average Claim Cost"
+      ]
+    }
+  ],
+  "intents": [
+    {
+      "id": "i1_annual_encounters_by_class",
+      "title": "Annual encounter counts by class, 2024-2025",
+      "expected_columns": [
+        "Year",
+        "Class",
+        "encounter_count"
+      ],
+      "notes": "Year-class combinations with no encounters are omitted, not filled with zero.",
+      "semantics": {
+        "dimensions": [
+          "Year",
+          "Class"
+        ],
+        "measures": [
+          {
+            "alias": "encounter_count",
+            "measure": "Encounter Count",
+            "round": null
+          }
+        ],
+        "years": [
+          2024,
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Year`,",
+        "  `Class`,",
+        "  MEASURE(`Encounter Count`) AS encounter_count",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` IN (2024, 2025)",
+        "GROUP BY `Year`, `Class`",
+        "ORDER BY `Year`, `Class`"
+      ]
+    },
+    {
+      "id": "i2_quarterly_encounters_by_class",
+      "title": "Quarterly encounter counts by class, 2024-2025",
+      "expected_columns": [
+        "Quarter",
+        "Class",
+        "encounter_count"
+      ],
+      "notes": "Quarter-class combinations with no encounters are omitted, not filled with zero.",
+      "semantics": {
+        "dimensions": [
+          "Quarter",
+          "Class"
+        ],
+        "measures": [
+          {
+            "alias": "encounter_count",
+            "measure": "Encounter Count",
+            "round": null
+          }
+        ],
+        "years": [
+          2024,
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Quarter`,",
+        "  `Class`,",
+        "  MEASURE(`Encounter Count`) AS encounter_count",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` IN (2024, 2025)",
+        "GROUP BY `Quarter`, `Class`",
+        "ORDER BY `Quarter`, `Class`"
+      ]
+    },
+    {
+      "id": "i3_cost_and_coverage_by_payer_category_2025",
+      "title": "2025 simulated claim cost, payer coverage, cost not covered and coverage rate by payer category",
+      "expected_columns": [
+        "Payer Category",
+        "total_claim_cost",
+        "total_payer_coverage",
+        "claim_cost_not_covered_by_payer",
+        "coverage_rate"
+      ],
+      "semantics": {
+        "dimensions": [
+          "Payer Category"
+        ],
+        "measures": [
+          {
+            "alias": "total_claim_cost",
+            "measure": "Total Claim Cost",
+            "round": 2
+          },
+          {
+            "alias": "total_payer_coverage",
+            "measure": "Total Payer Coverage",
+            "round": 2
+          },
+          {
+            "alias": "claim_cost_not_covered_by_payer",
+            "measure": "Claim Cost Not Covered by Payer",
+            "round": 2
+          },
+          {
+            "alias": "coverage_rate",
+            "measure": "Coverage Rate",
+            "round": 4
+          }
+        ],
+        "years": [
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Payer Category`,",
+        "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost,",
+        "  ROUND(MEASURE(`Total Payer Coverage`), 2) AS total_payer_coverage,",
+        "  ROUND(MEASURE(`Claim Cost Not Covered by Payer`), 2) AS claim_cost_not_covered_by_payer,",
+        "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` = 2025",
+        "GROUP BY `Payer Category`",
+        "ORDER BY `Payer Category`"
+      ]
+    },
+    {
+      "id": "i4_average_claim_cost_by_class_2025",
+      "title": "2025 average simulated claim cost by class",
+      "expected_columns": [
+        "Class",
+        "average_claim_cost"
+      ],
+      "notes": "Classes with no 2025 encounters are omitted.",
+      "semantics": {
+        "dimensions": [
+          "Class"
+        ],
+        "measures": [
+          {
+            "alias": "average_claim_cost",
+            "measure": "Average Claim Cost",
+            "round": 2
+          }
+        ],
+        "years": [
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Class`,",
+        "  ROUND(MEASURE(`Average Claim Cost`), 2) AS average_claim_cost",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` = 2025",
+        "GROUP BY `Class`",
+        "ORDER BY `Class`"
+      ]
+    },
+    {
+      "id": "i5_patients_and_encounters_per_patient_by_payer_category_2025",
+      "title": "2025 unique synthetic patients and encounters per patient by payer category",
+      "expected_columns": [
+        "Payer Category",
+        "unique_patient_count",
+        "encounters_per_patient"
+      ],
+      "notes": "Unique Patient Count is not additive across payer categories: a synthetic patient can appear under more than one category in the same year.",
+      "semantics": {
+        "dimensions": [
+          "Payer Category"
+        ],
+        "measures": [
+          {
+            "alias": "unique_patient_count",
+            "measure": "Unique Patient Count",
+            "round": null
+          },
+          {
+            "alias": "encounters_per_patient",
+            "measure": "Encounters per Patient",
+            "round": 2
+          }
+        ],
+        "years": [
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Payer Category`,",
+        "  MEASURE(`Unique Patient Count`) AS unique_patient_count,",
+        "  ROUND(MEASURE(`Encounters per Patient`), 2) AS encounters_per_patient",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` = 2025",
+        "GROUP BY `Payer Category`",
+        "ORDER BY `Payer Category`"
+      ]
+    },
+    {
+      "id": "i6_quarterly_total_claim_cost",
+      "title": "Quarterly simulated total claim cost, 2024-2025",
+      "expected_columns": [
+        "Quarter",
+        "total_claim_cost"
+      ],
+      "semantics": {
+        "dimensions": [
+          "Quarter"
+        ],
+        "measures": [
+          {
+            "alias": "total_claim_cost",
+            "measure": "Total Claim Cost",
+            "round": 2
+          }
+        ],
+        "years": [
+          2024,
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Quarter`,",
+        "  ROUND(MEASURE(`Total Claim Cost`), 2) AS total_claim_cost",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` IN (2024, 2025)",
+        "GROUP BY `Quarter`",
+        "ORDER BY `Quarter`"
+      ]
+    },
+    {
+      "id": "i7_quarterly_coverage_rate_by_payer_category",
+      "title": "Quarterly coverage rate by payer category, 2024-2025",
+      "expected_columns": [
+        "Quarter",
+        "Payer Category",
+        "coverage_rate"
+      ],
+      "notes": "Quarter-category combinations with no encounters are omitted, not filled with zero.",
+      "semantics": {
+        "dimensions": [
+          "Quarter",
+          "Payer Category"
+        ],
+        "measures": [
+          {
+            "alias": "coverage_rate",
+            "measure": "Coverage Rate",
+            "round": 4
+          }
+        ],
+        "years": [
+          2024,
+          2025
+        ]
+      },
+      "canonical_sql": [
+        "SELECT",
+        "  `Quarter`,",
+        "  `Payer Category`,",
+        "  ROUND(MEASURE(`Coverage Rate`), 4) AS coverage_rate",
+        "FROM {{catalog}}.{{schema}}.encounter_operations_metrics",
+        "WHERE `Year` IN (2024, 2025)",
+        "GROUP BY `Quarter`, `Payer Category`",
+        "ORDER BY `Quarter`, `Payer Category`"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "i1-a",
+      "intent_id": "i1_annual_encounters_by_class",
+      "question": "How many encounters were there in 2024 and in 2025 for each year and encounter class combination that has encounters?"
+    },
+    {
+      "key": "i1-b",
+      "intent_id": "i1_annual_encounters_by_class",
+      "question": "Give me yearly visit totals for 2024 through 2025, split by encounter class, listing only the year-class pairs that occur."
+    },
+    {
+      "key": "i2-a",
+      "intent_id": "i2_quarterly_encounters_by_class",
+      "question": "Show quarterly encounter counts by encounter class for 2024 and 2025, including only quarter-class combinations that have encounters."
+    },
+    {
+      "key": "i2-b",
+      "intent_id": "i2_quarterly_encounters_by_class",
+      "question": "For the quarters from 2024-Q1 to 2025-Q4, how many visits happened in each observed quarter and class combination?"
+    },
+    {
+      "key": "i3-a",
+      "intent_id": "i3_cost_and_coverage_by_payer_category_2025",
+      "question": "For 2025, what were total simulated claim cost, total payer coverage, claim cost not covered by payer, and coverage rate by payer category?"
+    },
+    {
+      "key": "i3-b",
+      "intent_id": "i3_cost_and_coverage_by_payer_category_2025",
+      "question": "Break down 2025 by payer category: how much was billed in simulated claims, how much payers paid, the part payers did not cover, and the share they covered."
+    },
+    {
+      "key": "i4-a",
+      "intent_id": "i4_average_claim_cost_by_class_2025",
+      "question": "What was the average simulated claim cost per encounter for each encounter class that has encounters in 2025?"
+    },
+    {
+      "key": "i4-b",
+      "intent_id": "i4_average_claim_cost_by_class_2025",
+      "question": "List the mean claim amount per visit for every class of encounter seen in 2025."
+    },
+    {
+      "key": "i5-a",
+      "intent_id": "i5_patients_and_encounters_per_patient_by_payer_category_2025",
+      "question": "How many unique synthetic patients and how many encounters per patient were there in each payer category in 2025?"
+    },
+    {
+      "key": "i5-b",
+      "intent_id": "i5_patients_and_encounters_per_patient_by_payer_category_2025",
+      "question": "In 2025, give the distinct patient count and the average visits per patient for every payer category."
+    },
+    {
+      "key": "i6-a",
+      "intent_id": "i6_quarterly_total_claim_cost",
+      "question": "What was the total simulated claim cost in each quarter of 2024 and 2025?"
+    },
+    {
+      "key": "i6-b",
+      "intent_id": "i6_quarterly_total_claim_cost",
+      "question": "Show the quarter-by-quarter sum of claim charges from 2024-Q1 through 2025-Q4."
+    },
+    {
+      "key": "i7-a",
+      "intent_id": "i7_quarterly_coverage_rate_by_payer_category",
+      "question": "What was the quarterly coverage rate for each observed quarter and payer category combination in 2024 and 2025?"
+    },
+    {
+      "key": "i7-b",
+      "intent_id": "i7_quarterly_coverage_rate_by_payer_category",
+      "question": "Quarter by quarter across 2024-2025, what share of simulated claim cost did payers cover within each payer category that had encounters in that quarter?"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "contract_version": 1,
+  "description": "Data contract for the Synthea Healthcare Operations Genie Agent. Only encounters.csv and payers.csv are in scope. Raw payer names never leave local ignored staging; private payer names are represented here only as SHA-256 digests so this repository never displays them.",
+  "sources": {
+    "encounters.csv": {
+      "required_columns": [
+        "Id",
+        "START",
+        "PATIENT",
+        "PAYER",
+        "ENCOUNTERCLASS",
+        "TOTAL_CLAIM_COST",
+        "PAYER_COVERAGE"
+      ],
+      "excluded_columns_reason": "STOP, ORGANIZATION, PROVIDER, CODE, DESCRIPTION, BASE_ENCOUNTER_COST, REASONCODE and REASONDESCRIPTION are dropped during local staging: they are outside the aggregate operational scope, identify facilities or providers, or carry clinical terminology.",
+      "start_timestamp_pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "money_columns": ["TOTAL_CLAIM_COST", "PAYER_COVERAGE"],
+      "max_money_decimal_places": 2
+    },
+    "payers.csv": {
+      "required_columns": ["Id", "NAME"],
+      "excluded_columns_reason": "Only the payer key and name are read; the name is mapped to a payer category locally and then discarded."
+    }
+  },
+  "staging": {
+    "encounters": {
+      "file": "encounters.csv",
+      "columns": [
+        {"name": "encounter_id", "source": "Id"},
+        {"name": "start_utc", "source": "START"},
+        {"name": "patient_id", "source": "PATIENT"},
+        {"name": "payer_id", "source": "PAYER"},
+        {"name": "encounter_class", "source": "ENCOUNTERCLASS"},
+        {"name": "total_claim_cost", "source": "TOTAL_CLAIM_COST"},
+        {"name": "payer_coverage", "source": "PAYER_COVERAGE"}
+      ]
+    },
+    "payer_categories": {
+      "file": "payer_categories.csv",
+      "columns": [
+        {"name": "payer_id", "source": "Id"},
+        {"name": "payer_category", "source": "NAME (mapped)"}
+      ]
+    }
+  },
+  "payer_mapping": {
+    "public_program_labels": {
+      "Dual Eligible": "Dual Eligible",
+      "Medicaid": "Medicaid",
+      "Medicare": "Medicare",
+      "NO_INSURANCE": "No Insurance"
+    },
+    "private_label": "Private Insurance",
+    "private_name_count": 6,
+    "private_name_sha256": [
+      "0a393c7d57ed40cc43f6eab027215a0a814751d27169e511a920f65dd046ecad",
+      "22418edce646275d753672c9d336b7b5e76ece966f962890e7562eaa06017464",
+      "67c29814ee1eb20b1be2c2c692cfdd2cfb84e919a867998eccd1762b7b785780",
+      "9b5419811e035b694f96935ccdd3263bf4c3484d96219e826b528fa0693ae8bd",
+      "c37ef7ef547255c2f8b5ef82ddbbf4fbec0335fa7d9734137df288fa497c351a",
+      "e0cdc30a7a3a449283fd2da2750a6530280e33d98b84eecb2a47ec6d0c1859dc"
+    ],
+    "matching": "Exact, case-sensitive match on the full source NAME value. Public program names match by string; private names match by SHA-256 of the UTF-8 name. Any other name fails the run.",
+    "unknown_policy": "fail"
+  },
+  "payer_categories": [
+    "Dual Eligible",
+    "Medicaid",
+    "Medicare",
+    "No Insurance",
+    "Private Insurance"
+  ],
+  "clean_model": {
+    "clean_encounters": {
+      "grain": "one row per synthetic encounter",
+      "columns": [
+        {"name": "encounter_date", "type": "DATE", "role": "dimension source", "derivation": "UTC calendar date of START (first 10 characters)"},
+        {"name": "encounter_class", "type": "STRING", "role": "dimension source", "derivation": "ENCOUNTERCLASS as published"},
+        {"name": "payer_id", "type": "STRING", "role": "hidden join key", "derivation": "PAYER; used only to join payer_categories, never displayed"},
+        {"name": "patient_id", "type": "STRING", "role": "hidden distinct-count key", "derivation": "PATIENT; used only inside COUNT(DISTINCT), never displayed"},
+        {"name": "total_claim_cost", "type": "DECIMAL(18,2)", "role": "measure source", "derivation": "TOTAL_CLAIM_COST (simulated)"},
+        {"name": "payer_coverage", "type": "DECIMAL(18,2)", "role": "measure source", "derivation": "PAYER_COVERAGE (simulated)"}
+      ]
+    },
+    "payer_categories": {
+      "grain": "one row per payer key",
+      "columns": [
+        {"name": "payer_id", "type": "STRING", "role": "join key"},
+        {"name": "payer_category", "type": "STRING", "role": "dimension source"}
+      ]
+    }
+  },
+  "metric_view": {
+    "name": "encounter_operations_metrics",
+    "source_table": "clean_encounters",
+    "join": {"name": "payer", "table": "payer_categories", "on": "source.payer_id = payer.payer_id", "cardinality": "many_to_one (metric view default)"},
+    "dimensions": [
+      {"name": "Encounter Date", "expr": "source.encounter_date"},
+      {"name": "Quarter", "expr": "CONCAT(CAST(YEAR(source.encounter_date) AS STRING), '-Q', CAST(QUARTER(source.encounter_date) AS STRING))"},
+      {"name": "Year", "expr": "YEAR(source.encounter_date)"},
+      {"name": "Class", "expr": "source.encounter_class"},
+      {"name": "Payer Category", "expr": "payer.payer_category"}
+    ],
+    "measures": [
+      {"name": "Encounter Count", "expr": "COUNT(1)", "additive_across_payer_categories": true},
+      {"name": "Unique Patient Count", "expr": "COUNT(DISTINCT source.patient_id)", "additive_across_payer_categories": false},
+      {"name": "Total Claim Cost", "expr": "SUM(source.total_claim_cost)", "additive_across_payer_categories": true},
+      {"name": "Total Payer Coverage", "expr": "SUM(source.payer_coverage)", "additive_across_payer_categories": true},
+      {"name": "Claim Cost Not Covered by Payer", "display_name": "Claim Cost Not Covered by Payer (simulated)", "expr": "SUM(source.total_claim_cost) - SUM(source.payer_coverage)", "additive_across_payer_categories": true},
+      {"name": "Coverage Rate", "expr": "SUM(source.payer_coverage) / NULLIF(SUM(source.total_claim_cost), 0)", "additive_across_payer_categories": false},
+      {"name": "Average Claim Cost", "expr": "AVG(source.total_claim_cost)", "additive_across_payer_categories": false},
+      {"name": "Encounters per Patient", "expr": "COUNT(1) / NULLIF(COUNT(DISTINCT source.patient_id), 0)", "additive_across_payer_categories": false}
+    ],
+    "hidden_columns": ["patient_id", "payer_id"],
+    "banned_measure_terms": ["uncovered", "patient responsibility", "out-of-pocket", "out of pocket"]
+  },
+  "public_output_scan": {
+    "normalization": "casefold, keep [a-z0-9]+ tokens, join with single spaces",
+    "max_ngram_words": 4,
+    "forbidden_term_sha256": [
+      "17954bc6b7d7d3e364bc41aee2726febe95b305d8aa513d4f94b2b4165450130",
+      "20cd0cd5561b7df589741b649547fb853436f3b02e243e53eddca0eae5621336",
+      "59af5c26552cf7546a926cf05057ef247e50fe7b0a70f41b734f8fbb0648b975",
+      "5e06e8549549caab5452db917c2abbaa80895d4f330d77f63eff603982de1654",
+      "5e9ceb28244d06451ffa713a7552d8d89519875f3db22c7626d04f5379c30710",
+      "635c9d771ebf49b4435dced38e7b0f6eff1b6b8b57e6040f7350572c0ecc8e35",
+      "72aadb6e3bf674a07bd0b4789c0fa9a13e5b9ffd48fc6542af201d4b66f19b11",
+      "84fe8902866796805003e6d8c32cce4bd7acce9ee82696e64e51f266d89c6cf0",
+      "8d6d9a639177634e2c4847be33bfea6705c3b738aa2de2760cfea7478dde6bba",
+      "93babfec2f0c9778de88e6d0a303448a194353c425497bab45f7ba0a0dbe842d",
+      "9760bb77c0ad6bb21e6959c08afeaf80642174d330a34e5e329549e3e2a65147",
+      "f19cb2e90d327cf8d54cf0307707324a23e0d80cf542483b9bbfda4c6e7f9a77",
+      "f66f87d87754f4a79fe54376bd0c491aa050dcf491374b2ea10cd1172e8cbe84"
+    ],
+    "forbidden_term_note": "Digests of normalized private insurer brand names and common brand stems. Digests support non-display, not secrecy: anyone can hash a guess."
+  }
+}

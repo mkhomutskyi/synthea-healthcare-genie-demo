@@ -1,0 +1,175 @@
+{
+  "lock_version": 1,
+  "artifact": {
+    "name": "Synthea sample data CSV archive (upstream 100-patient sample label; 'latest' download)",
+    "source_url": "https://synthetichealth.github.io/synthea-sample-data/downloads/latest/synthea_sample_data_csv_latest.zip",
+    "sha256": "d61417b551e5b0997c33851b339c157421751f0ea68c18ea686ceb1850907c35",
+    "size_bytes": 5960866,
+    "retrieved_on": "2026-10-13",
+    "provenance_note": "The upstream file is a mutable 'latest' download. This lock records only what scripts/download_and_verify.py observed on retrieved_on. No claim is made about which Synthea version, commit or configuration generated the archive."
+  },
+  "expected_member_names": [
+    "allergies.csv",
+    "careplans.csv",
+    "claims.csv",
+    "claims_transactions.csv",
+    "conditions.csv",
+    "devices.csv",
+    "encounters.csv",
+    "imaging_studies.csv",
+    "immunizations.csv",
+    "medications.csv",
+    "observations.csv",
+    "organizations.csv",
+    "patients.csv",
+    "payer_transitions.csv",
+    "payers.csv",
+    "procedures.csv",
+    "providers.csv",
+    "supplies.csv"
+  ],
+  "used_members": {
+    "encounters.csv": {
+      "size_bytes": 1857081,
+      "sha256": "16d209cb1429605c90c80cd859ac16569108dc46890f50eb6a125a0602235b3a",
+      "zip_timestamp": "2026-08-18T16:13:14",
+      "header": [
+        "Id",
+        "START",
+        "STOP",
+        "PATIENT",
+        "ORGANIZATION",
+        "PROVIDER",
+        "PAYER",
+        "ENCOUNTERCLASS",
+        "CODE",
+        "DESCRIPTION",
+        "BASE_ENCOUNTER_COST",
+        "TOTAL_CLAIM_COST",
+        "PAYER_COVERAGE",
+        "REASONCODE",
+        "REASONDESCRIPTION"
+      ],
+      "row_count": 5571
+    },
+    "payers.csv": {
+      "size_bytes": 1770,
+      "sha256": "daa80d02749bbd1b1076d8daa290780c89a45802d4161b69cbff1918dc66e69f",
+      "zip_timestamp": "2026-08-18T16:13:14",
+      "header": [
+        "Id",
+        "NAME",
+        "OWNERSHIP",
+        "ADDRESS",
+        "CITY",
+        "STATE_HEADQUARTERED",
+        "ZIP",
+        "PHONE",
+        "AMOUNT_COVERED",
+        "AMOUNT_UNCOVERED",
+        "REVENUE",
+        "COVERED_ENCOUNTERS",
+        "UNCOVERED_ENCOUNTERS",
+        "COVERED_MEDICATIONS",
+        "UNCOVERED_MEDICATIONS",
+        "COVERED_PROCEDURES",
+        "UNCOVERED_PROCEDURES",
+        "COVERED_IMMUNIZATIONS",
+        "UNCOVERED_IMMUNIZATIONS",
+        "UNIQUE_CUSTOMERS",
+        "QOLS_AVG",
+        "MEMBER_MONTHS"
+      ],
+      "row_count": 10
+    }
+  },
+  "observed": {
+    "encounters": {
+      "row_count": 5571,
+      "distinct_encounter_ids": 5571,
+      "distinct_patients": 108,
+      "start_date_min": "1942-11-26",
+      "start_date_max": "2026-08-16",
+      "encounter_class_counts": {
+        "ambulatory": 2939,
+        "emergency": 270,
+        "home": 63,
+        "hospice": 8,
+        "inpatient": 58,
+        "outpatient": 759,
+        "snf": 9,
+        "urgentcare": 195,
+        "virtual": 8,
+        "wellness": 1262
+      },
+      "rows_by_year": {
+        "2023": 526,
+        "2024": 521,
+        "2025": 523,
+        "2026": 351
+      },
+      "rows_by_payer_category": {
+        "Dual Eligible": 219,
+        "Medicaid": 1348,
+        "Medicare": 1190,
+        "No Insurance": 749,
+        "Private Insurance": 2065
+      },
+      "rows_by_year_and_payer_category": {
+        "2023": {
+          "Dual Eligible": 11,
+          "Medicaid": 95,
+          "Medicare": 153,
+          "No Insurance": 106,
+          "Private Insurance": 161
+        },
+        "2024": {
+          "Dual Eligible": 7,
+          "Medicaid": 130,
+          "Medicare": 137,
+          "No Insurance": 54,
+          "Private Insurance": 193
+        },
+        "2025": {
+          "Dual Eligible": 8,
+          "Medicaid": 85,
+          "Medicare": 145,
+          "No Insurance": 131,
+          "Private Insurance": 154
+        },
+        "2026": {
+          "Dual Eligible": 6,
+          "Medicaid": 95,
+          "Medicare": 102,
+          "No Insurance": 29,
+          "Private Insurance": 119
+        }
+      },
+      "total_claim_cost_sum": "16806149.38",
+      "payer_coverage_sum": "12454471.00",
+      "negative_money_values": 0,
+      "coverage_exceeds_claim_rows": 0
+    },
+    "payers": {
+      "row_count": 10,
+      "public_program_names": [
+        "Dual Eligible",
+        "Medicaid",
+        "Medicare",
+        "NO_INSURANCE"
+      ],
+      "private_name_count": 6
+    }
+  },
+  "verification": {
+    "tool": "scripts/download_and_verify.py --rebaseline",
+    "verified_on": "2026-10-13",
+    "checks": [
+      "archive SHA-256 equals the human-accepted digest",
+      "member names are flat .csv files",
+      "required columns present; START format; money precision",
+      "every encounter payer key resolves to exactly one payer",
+      "payer names map exactly to the contract (unknown names fail)"
+    ]
+  }
+}

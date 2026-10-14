@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="330" viewBox="0 0 1400 330">
+  <title>Synthetic healthcare data to a Genie answer</title>
+  <desc>The official Synthea sample is minimized locally, loaded into SQL tables, exposed through one metric view, and queried in Genie Chat.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#1664d8"/></marker></defs>
+  <rect width="1400" height="330" fill="white"/>
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#17263d">
+    <text x="700" y="48" font-size="31" font-weight="700">Synthetic healthcare data to a Genie answer</text>
+    <path d="M408 67H992" stroke="#ffe64d" stroke-width="9" stroke-linecap="round"/>
+    <text x="700" y="96" font-size="19">Prepare once. Ask questions. Review the SQL.</text>
+    <g fill="#f5f9ff" stroke="#bfd3ef" stroke-width="2">
+      <rect x="35" y="135" width="230" height="110" rx="14"/>
+      <rect x="310" y="135" width="230" height="110" rx="14"/>
+      <rect x="585" y="135" width="230" height="110" rx="14"/>
+      <rect x="860" y="135" width="230" height="110" rx="14"/>
+      <rect x="1135" y="135" width="230" height="110" rx="14"/>
+    </g>
+    <g font-size="24" font-weight="700">
+      <text x="150" y="178">Synthea sample</text><text x="425" y="178">Local preparation</text>
+      <text x="700" y="178">SQL tables</text><text x="975" y="178">Metric view</text><text x="1250" y="178">Genie Chat</text>
+    </g>
+    <g font-size="18" fill="#435775">
+      <text x="150" y="211">Public synthetic data</text><text x="425" y="211">Verify and minimize</text>
+      <text x="700" y="211">Typed fields and gates</text><text x="975" y="211">Defined metrics</text><text x="1250" y="211">Question → SQL → result</text>
+    </g>
+    <g stroke="#1664d8" stroke-width="3" marker-end="url(#arrow)">
+      <path d="M270 190H300"/><path d="M545 190H575"/><path d="M820 190H850"/><path d="M1095 190H1125"/>
+    </g>
+    <text x="700" y="291" font-size="18" fill="#435775">Only the metric view is attached to Genie. All data is simulated.</text>
+  </g>
+</svg>

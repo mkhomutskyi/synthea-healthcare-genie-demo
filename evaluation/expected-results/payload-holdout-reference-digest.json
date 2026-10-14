@@ -1,0 +1,24 @@
+{
+  "note": "Digests of the offline reference results computed from the pinned archive. No result values are published here; see README.md in this folder.",
+  "generated_by": "uv run python scripts/run_benchmarks.py --reference --payload-holdout --freeze-digest",
+  "artifact_sha256": "d61417b551e5b0997c33851b339c157421751f0ea68c18ea686ceb1850907c35",
+  "benchmark_intents_sha256": "2a68ad9215ca19e4cd9edca04450c344948d51a3c8584a5767ba57fa6ec40587",
+  "intents": {
+    "h1_patients_and_encounters_per_patient_by_class_2024": {
+      "rows": 9,
+      "sha256": "ebb7ff23af588ebe87f2e158dc7c8c626e4184b0e3e93d39c83a04dbffabd898"
+    },
+    "h2_encounters_and_average_claim_cost_by_payer_category_2024": {
+      "rows": 5,
+      "sha256": "1ec73ea9695ecbd8b72e370fe98b49f4c85ce4f8e3ac40191263b8f142866ffe"
+    },
+    "h3_annual_coverage_rate_by_class": {
+      "rows": 17,
+      "sha256": "019f1aaedc6ff9a9c6893743ca72c5e10161d559195d15a9d9d42ed1491ed73f"
+    },
+    "h4_quarterly_coverage_and_uncovered_cost_2025": {
+      "rows": 4,
+      "sha256": "7096b22a29597e8f422ae9bae7396cbd567152384759cf3b848250de460c3d87"
+    }
+  }
+}

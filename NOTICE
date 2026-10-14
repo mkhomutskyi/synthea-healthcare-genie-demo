@@ -1,0 +1,17 @@
+Synthea Healthcare Operations Genie Agent demo
+Copyright 2026 Maks Khomutskyi
+
+This product includes original code and documentation licensed under the Apache License,
+Version 2.0 (see LICENSE). The license covers this project's original work only.
+
+This repository does not include or redistribute any raw, extracted or staged Synthea
+data. Users download the Synthea sample data archive directly from its publisher; see
+DATA.md and THIRD_PARTY_NOTICES.md for attribution, citation and the terms that apply to
+it. The repository does contain aggregate results and Agent answers computed from that
+synthetic data, such as the files under evaluation/expected-results/ and evidence/.
+
+Synthea is a project of The MITRE Corporation. Synthea and MITRE are trademarks of their
+respective owners. Their use here identifies the data source only and does not imply
+endorsement of, or affiliation with, this project. Databricks and Genie are trademarks of
+Databricks, Inc., used here to identify the platform. This is an independent demo
+project, not an official Databricks product or a supported Databricks solution.

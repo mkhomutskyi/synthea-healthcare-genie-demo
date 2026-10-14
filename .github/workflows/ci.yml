@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      artifact_tier:
+        description: "Also download the mutable upstream archive and run the artifact integration tier"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    name: Offline tier (no network data, no Databricks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Install locked environment
+        run: uv sync --locked
+      - name: Format
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy
+      - name: Tests
+        run: uv run pytest
+      - name: Contract checks
+        run: uv run python scripts/verify_contracts.py
+      - name: Generated files up to date
+        run: uv run python scripts/render_agent_config.py --check
+
+  artifact:
+    name: Artifact integration tier (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.artifact_tier
+    needs: offline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - run: uv sync --locked
+      - name: Download, verify and stage (fails closed on hash drift)
+        run: uv run python scripts/download_and_verify.py --stage
+      - name: Artifact checks and exact-value leak scan
+        run: uv run python scripts/verify_contracts.py --artifact
+      - name: Artifact tests
+        run: uv run pytest -m artifact
+      - name: Offline reference results (not uploaded)
+        run: uv run python scripts/run_benchmarks.py --reference
